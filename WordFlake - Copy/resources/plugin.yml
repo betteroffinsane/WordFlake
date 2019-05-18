@@ -1,0 +1,10 @@
+name: WordFlake
+main: plugin.WordFlake.WordFlake
+version: 1.0.0
+
+
+commands:
+
+permissions:
+  word.reload:
+    description: test
