@@ -1,3 +1,9 @@
-#configurables, enjoy
+#These are the configurable words, add to this inifnitely with proper formatting
+#or add with the in-game command /wordadd
+#any bugs can be reported to AndItsDrew#9412 on Discord.
 replace-words:
-  fuck: "testing"
+  fuck: flock
+  shit: sheet
+  cunt: cutie
+  dick: dong
+  ass: butt

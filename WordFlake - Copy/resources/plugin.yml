@@ -1,10 +1,11 @@
 name: WordFlake
 main: plugin.WordFlake.WordFlake
-version: 1.0.0
-
-
+version: 1.0.7
 commands:
-
+  wordr:
+    description: Reload.
+  wordadd:
+    description: Add word.
 permissions:
-  word.reload:
-    description: test
+  wordflake.perms:
+    description: Complete permission over plugin.
