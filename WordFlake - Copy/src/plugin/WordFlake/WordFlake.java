@@ -9,11 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.*;
 
@@ -21,7 +20,7 @@ public class WordFlake extends JavaPlugin implements Listener {
 
     public static final String REPLACE_WORDS_YML_PREFIX = "replace-words.";
     public static final String REPLACE_WORDS_YML_SECTION = "replace-words";
-    private Map<String, String> swearWordMappings;
+    private Map<SwearWordPattern, String> swearWordMappings;
 
     @Override
     public void onEnable() {
@@ -35,10 +34,23 @@ public class WordFlake extends JavaPlugin implements Listener {
         metrics.addCustomChart(new plugin.WordFlake.Metrics.SimplePie("chart_id", () -> "My value"));
     }
 
-    private Map<String, String> getMappings(Set<String> swearWords, FileConfiguration config) {
+    private Map<SwearWordPattern, String> getMappings(Set<String> swearWords, FileConfiguration config) {
         return new HashMap<>(swearWords
                 .stream()
-                .collect(toMap(Function.identity(), s -> config.getString(REPLACE_WORDS_YML_PREFIX + s))));
+                .collect(toMap(WordFlake::compileRegexPattern, s -> config.getString(REPLACE_WORDS_YML_PREFIX + s))));
+    }
+
+    static SwearWordPattern compileRegexPattern(String swearWord) {
+        StringBuilder generalStringBuilder = new StringBuilder(".*");
+        StringBuilder swearWordPatternStringBuilder = new StringBuilder("(?i)(");
+        for (int i = 0; i < swearWord.length() - 1; i++) {
+            swearWordPatternStringBuilder.append(swearWord.charAt(i)).append("+\\s*");
+        }
+        swearWordPatternStringBuilder.append(swearWord.charAt(swearWord.length() - 1)).append("+").append(")");
+        generalStringBuilder.append(swearWordPatternStringBuilder).append(".*");
+        return new SwearWordPattern(swearWord,
+                Pattern.compile(swearWordPatternStringBuilder.toString()),
+                Pattern.compile(generalStringBuilder.toString()));
     }
 
     private Set<String> getSwearWordsOnly() {
@@ -52,10 +64,12 @@ public class WordFlake extends JavaPlugin implements Listener {
         event.setMessage(message);
     }
 
-    static String getFilteredMessage(String originalMessage, Map<String, String> swearWordMappings) {
-        for (String swearWord : swearWordMappings.keySet()) {
-                swearWordMappings.get(swearWord);
-                originalMessage = originalMessage.replace(swearWord, swearWordMappings.get(swearWord));
+    static String getFilteredMessage(String originalMessage, Map<SwearWordPattern, String> swearWordMappings) {
+        for (SwearWordPattern pattern : swearWordMappings.keySet()) {
+            while (originalMessage.matches(pattern.fullMessageRegex().pattern())) {
+                originalMessage = originalMessage.replaceFirst(pattern.swearWordRegex().pattern(), swearWordMappings.get(pattern));
+            }
+
         }
         return originalMessage;
     }
@@ -81,10 +95,13 @@ public class WordFlake extends JavaPlugin implements Listener {
                 getConfig().set(REPLACE_WORDS_YML_PREFIX + keyadd, stringadd);
                 sender.sendMessage(ChatColor.GREEN + "[WordFlake] You have successfully added a word to the list.");
                 saveConfig();
-                swearWordMappings.put(keyadd, stringadd);
+                swearWordMappings.put(compileRegexPattern(keyadd), stringadd);
             }
         }
         return true;
+    }
+
+    record SwearWordPattern(String swearWord, Pattern swearWordRegex, Pattern fullMessageRegex) {
     }
 
 }
