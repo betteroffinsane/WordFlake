@@ -21,7 +21,6 @@ public class WordFlake extends JavaPlugin implements Listener {
 
     public static final String REPLACE_WORDS_YML_PREFIX = "replace-words.";
     public static final String REPLACE_WORDS_YML_SECTION = "replace-words";
-
     private Map<String, String> swearWordMappings;
 
     @Override
@@ -54,33 +53,11 @@ public class WordFlake extends JavaPlugin implements Listener {
     }
 
     static String getFilteredMessage(String originalMessage, Map<String, String> swearWordMappings) {
-        ArrayList<Character> charArrayList = new ArrayList<>();
-        for (char c : originalMessage.toCharArray())
-            charArrayList.add(c);
         for (String swearWord : swearWordMappings.keySet()) {
-            int startIndex;
-            if ((startIndex = originalMessage.toLowerCase().indexOf(swearWord)) != -1) {
-                int endIndex = startIndex + swearWord.length();
-                for (int i = startIndex; i < endIndex; i++) {
-                    if (charArrayList.size() <= 1) {
-                        charArrayList.clear();
-                    } else {
-                        charArrayList.remove(startIndex);
-                        charArrayList.trimToSize();
-                    }
-                }
-                char[] replaceWith = swearWordMappings.get(swearWord).toCharArray();
-                for (int i = 0; i < replaceWith.length; i++) {
-                    char c = replaceWith[i];
-                    charArrayList.add(startIndex + i, c);
-                }
-                break;
-            }
+                swearWordMappings.get(swearWord);
+                originalMessage = originalMessage.replace(swearWord, swearWordMappings.get(swearWord));
         }
-        final char[] array = new char[charArrayList.size()];
-        for (int i = 0; i < array.length; i++)
-            array[i] = charArrayList.get(i);
-        return new String(array);
+        return originalMessage;
     }
 
     @Override
